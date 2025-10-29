@@ -7,9 +7,11 @@ import HelloWorld from './components/HelloWorld.vue'
 const randomPokemon = ref({
   name: '',
   sprites: {
-    front_default: null
-  }
+    front_default: null,
+  },
 })
+
+const pokemonId = ref(1)
 
 async function getData() {
   const url = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 500)}`
@@ -25,7 +27,29 @@ async function getData() {
   }
 }
 
-console.log('randomPokemon', randomPokemon)
+async function getDataFromDjangoAPI(pokemonId:any) {
+  const url = `http://127.0.0.1:8000/api/pokemon/${pokemonId}/`
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    randomPokemon.value = result
+    console.log('Pokémon data:', result)
+  } catch (error) {
+    console.error('Fetch failed:', error)
+  }
+}
+
+console.log('Pokemon', randomPokemon)
 
 // const imageUrl = ref('https://unsplash.com/s/photos/cats')
 </script>
@@ -33,7 +57,7 @@ console.log('randomPokemon', randomPokemon)
 <template>
   <header>
     <!-- <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" /> -->
-    <!-- <h1>This is gonna be permanent</h1> -->
+    <!-- <h1>Calling the <a href="https://pokeapi.co/">pokiAPI</a></h1>
     <p>{{ randomPokemon.name }}</p>
     <button @click="getData">This is my cool button</button>
     <img
@@ -41,7 +65,7 @@ console.log('randomPokemon', randomPokemon)
       :src="randomPokemon.sprites.front_default"
       width="300"
       height="300"
-    />
+    /> -->
 
     <!-- <div class="wrapper">
       <HelloWorld msg="Hello World" />
@@ -52,7 +76,21 @@ console.log('randomPokemon', randomPokemon)
     </div> -->
   </header>
 
-  <RouterView />
+  <!-- <RouterView /> -->
+
+  <div>
+    <h1>Calling custom django poke API</h1>
+    <label for="id">
+      Enter the pokemon id
+      <input name="id" type="number" v-model.number="pokemonId" min="1" />
+    </label>
+    <div>
+      <button @click="getDataFromDjangoAPI(pokemonId)">Get my pokemon from Django API pokedex</button>
+    </div>
+    <br />
+    <h1>Pokemon name</h1>
+    <p>{{ randomPokemon.name }}</p>
+  </div>
 </template>
 
 <style scoped>
